@@ -39,45 +39,31 @@ func main() {
 	}
 
 	tempDir, err := ioutil.TempDir(os.TempDir(), "yoink.*")
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer func() {
 		fmt.Println(fmt.Sprintf("Cleaning artifacts: %s", tempDir))
 		os.RemoveAll(tempDir)
 	}()
 
-	gitProgram := git.LocalGit{
-		From:   *fromRepoUrl,
-		To:     *destinationRepoUrl,
-		Folder: tempDir,
-	}
+	gitProgram := git.CreateLocalGit(*fromRepoUrl, *destinationRepoUrl, tempDir)
 
-	err = gitProgram.Clone()
-	if err != nil {
-		log.Println(fmt.Sprintf("Git returned: %s", err.Error()))
-		return
-	}
-	fmt.Println(fmt.Sprintf("Succesfully cloned %s to system temp", *fromRepoUrl))
-
-	err = gitProgram.ChangeRemote()
-	if err != nil {
-		log.Println(fmt.Sprintf("Git returned: %s", err.Error()))
-		return
-	}
-	fmt.Println(fmt.Sprintf("Succesfully changed remote from %s", *fromRepoUrl))
-	fmt.Println(fmt.Sprintf("Succesfully changed remote to %s", *destinationRepoUrl))
-
-	err = gitProgram.Branch()
-	if err != nil {
-		log.Println(fmt.Sprintf("Git returned: %s", err.Error()))
+	if gitProgram.Clone() != nil {
 		return
 	}
 
-	err = gitProgram.Push()
-	if err != nil {
-		log.Println(fmt.Sprintf("Git returned: %s", err.Error()))
+	if gitProgram.ChangeRemote() != nil {
 		return
 	}
-	fmt.Println("Done!")
+
+	if gitProgram.Branch() != nil {
+		return
+	}
+
+	if gitProgram.Push() != nil {
+		return
+	}
 }
