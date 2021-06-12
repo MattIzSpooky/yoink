@@ -42,7 +42,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		fmt.Println(fmt.Sprintf("Cleaning artifacts: %s", tempDir))
+		os.RemoveAll(tempDir)
+	}()
 
 	gitProgram := git.LocalGit{
 		From:   *fromRepoUrl,
